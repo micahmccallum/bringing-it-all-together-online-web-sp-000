@@ -1,4 +1,4 @@
-class Dog
+ class Dog
   
   ATTRIBUTES = {
     :id => "INTEGER PRIMARY KEY",
@@ -21,8 +21,19 @@ class Dog
   end
 
   def self.create_table
-    # sql = "CREATE TABLE IF NOT EXISTS #{self.table_name}"
-    # DB[:conn].execute(sql)
+    sql = <<-SQL
+      CREATE TABLE IF NOT EXISTS #{self.table_name}(
+        id INTEGER PRIMARY KEY,
+        name TEXT,
+        breed TEXT 
+      ); 
+    SQL
+    DB[:conn].execute(sql)
+  end
+
+  def self.drop_table
+    sql = "DROP TABLE #{self.table_name};"
+    DB[:conn].execute(sql)
   end
 
 
