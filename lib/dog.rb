@@ -16,6 +16,20 @@
     end
   end
 
+  def self.new_from_db(row)
+    params = {}
+    ATTRIBUTES.keys.each_with_index do |key, index|
+      params[:"#{key}"] = row[index] 
+    end
+    new = self.create(params)
+  end
+
+  def self.create(params)
+    new_obj = self.new(params)
+    new_obj.save
+    new_obj
+  end
+
   def self.table_name
     "#{self.to_s.downcase}s"
   end
@@ -35,6 +49,51 @@
     sql = "DROP TABLE #{self.table_name};"
     DB[:conn].execute(sql)
   end
+
+  def self.find_by_id(id)
+    sql = "SELECT * FROM #{self.table_name} WHERE id = ?"
+    row = DB[:conn].execute(sql, id).first
+    self.new_from_db(row)
+  end
+
+  def self.find_by_name(name)
+    sql = <<-SQL
+      SELECT * FROM "#{self.table_name}" WHERE name = ?
+    SQL
+    row = DB[:conn].execute(sql, name).first
+    self.new_from_db(row)
+  end
+
+  def self.find_or_create_by(params)
+    binding.pry
+    new_obj = self.new(params)    
+    new_obj.persisted? ? self.find_by_id(params[:id]) : self.create(params)        
+  end
+
+  def persisted?
+    !!self.id
+  end
+
+  def save
+    persisted? ? update : insert
+    self
+  end
+  
+  private
+    def insert
+      sql = <<-SQL
+        INSERT INTO #{self.class.table_name} (name, breed) VALUES (?, ?);
+      SQL
+
+      DB[:conn].execute(sql, self.name, self.breed)
+      self.id = DB[:conn].execute("SELECT last_insert_rowid();").flatten.first
+    end
+
+    def update
+      sql = "UPDATE #{self.class.table_name} SET name = ?, breed = ? WHERE ID = ?"
+
+      DB[:conn].execute(sql, self.name, self.breed, self.id)
+    end
 
 
 end
