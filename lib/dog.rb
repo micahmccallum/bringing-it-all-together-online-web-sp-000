@@ -65,9 +65,8 @@
   end
 
   def self.find_or_create_by(params)
-    binding.pry
-    new_obj = self.new(params)    
-    new_obj.persisted? ? self.find_by_id(params[:id]) : self.create(params)        
+    params.include?(:id) ? obj = self.find_by_id(params[:id]) : obj = self.find_by_name(params[:name])
+          
   end
 
   def persisted?
@@ -79,21 +78,21 @@
     self
   end
   
-  private
-    def insert
-      sql = <<-SQL
-        INSERT INTO #{self.class.table_name} (name, breed) VALUES (?, ?);
-      SQL
 
-      DB[:conn].execute(sql, self.name, self.breed)
-      self.id = DB[:conn].execute("SELECT last_insert_rowid();").flatten.first
-    end
+  def insert
+    sql = <<-SQL
+      INSERT INTO #{self.class.table_name} (name, breed) VALUES (?, ?);
+    SQL
 
-    def update
-      sql = "UPDATE #{self.class.table_name} SET name = ?, breed = ? WHERE ID = ?"
+    DB[:conn].execute(sql, self.name, self.breed)
+    self.id = DB[:conn].execute("SELECT last_insert_rowid();").flatten.first
+  end
 
-      DB[:conn].execute(sql, self.name, self.breed, self.id)
-    end
+  def update
+    sql = "UPDATE #{self.class.table_name} SET name = ?, breed = ? WHERE ID = ?"
+
+    DB[:conn].execute(sql, self.name, self.breed, self.id)
+  end
 
 
 end
