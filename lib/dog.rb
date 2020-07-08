@@ -66,7 +66,7 @@
 
   def self.find_or_create_by(params)
     params.include?(:id) ? obj = self.find_by_id(params[:id]) : obj = self.find_by_name(params[:name])
-          
+    obj.breed == params[:breed] ? obj : obj = create(params)     
   end
 
   def persisted?
@@ -76,8 +76,7 @@
   def save
     persisted? ? update : insert
     self
-  end
-  
+  end  
 
   def insert
     sql = <<-SQL
